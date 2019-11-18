@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>GraphQL</title>
+    <link
+      href="/node_modules/prism-themes/themes/prism-darcula.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Lato|Literata&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./reset.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="lang-graphql">
+    <h1>GraphQL</h1>
+
+    <h2>Definition</h2>
+    <p>
+      GraphQL is a query language for APIs and a runtime for fulfilling those
+      queries with your existing data. GraphQL provides a complete and
+      understandable description of the data in your API, gives clients the
+      power to ask for exactly what they need and nothing more, makes it easier
+      to evolve APIs over time, and enables powerful developer tools.
+    </p>
+
+    <h2>Object types and fields</h2>
+    <p>
+      GraphQL uses a typed schema to define our data model.
+    </p>
+
+    <h3>Types</h3>
+    <p>
+      Types are the structure of our data. They define properties and this
+      properties map to other types or scalar values. Scalar values on GraphQL
+      are String, Boolean, Arrays, Int, Float, ID, and in some cases Date.
+    </p>
+
+    <pre><code class="lang-graphql">
+    type User {
+      id: ID
+      name: String!
+      age: Int
+      isEmployed: Boolean
+      family: [User!]!
+    }
+    </code></pre>
+
+    <p>
+      Lets have a better look at
+      <code class="lang-graphql"> family:[User!]! </code>, the null operator.
+    </p>
+
+    <pre><code class="lang-javascript">
+    family: null // invalid
+    family: [] // valid
+    family: [{ name: 'John', age: 32, ... }] // valid
+    family: [{ name: 'John', age: 32, ... }, null, {...}] // invalid
+    </code></pre>
+
+    <h3>Meta fields</h3>
+    <p>
+      Meta fields are special properties on the object types that let us know
+      more information about the type itself. this are <code> __schema </code>,
+      <code> __type </code>.
+    </p>
+
+    <h3>Enumeration types</h3>
+    <p>Like in other typed systems, you can enumerate valies like this.</p>
+
+    <pre><code class="lang-graphql">
+    enum Houses {
+     TARGARYEN
+     STARK
+     LANNISTER
+     BARATHEON
+    }
+    </code></pre>
+
+    <h3>Fragments</h3>
+    <p>
+      Fragments let us define group of fields to use as return values. To create
+      a fragment you need to speficy the type this fragment is going to be used
+      on.
+    </p>
+
+    <pre><code class="lang-graphql">
+    fragment userFields on User {
+      name
+      age
+      isEmployed
+      family
+    }
+    </code></pre>
+
+    <p>You can also define inline fragments.</p>
+
+    <pre><code class="lang-graphql">
+    ... on User {
+      name
+      age
+      isEmployed
+      family
+    }
+    </code></pre>
+
+    <h3>Interfaces</h3>
+    <p>Interfaces let you extend your model and reuse types.</p>
+
+    <pre><code class="lang-graphql">
+    interface Animal{
+     id: ID!
+     numberOfLegs: Int! 
+     color: String!
+     race: String!
+    }
+
+    type Dog implements Animal {
+      timesToEatADat: Int! 
+    }
+
+    type Cat implements Animal {
+      likesWater: Boolean!
+    }
+    </code></pre>
+
+    <p>
+      You can use Interfaces as your return value, but you need to use fragments
+      to retrieve particular fields on the implemented types.
+    </p>
+
+    <h3>Union types</h3>
+    <p>
+      Union types as the name implies is the way we define several types as a
+      new type. Union needs to use concrete object types.
+    </p>
+
+    <pre><code class="lang-graphql">
+    union AnimalResult = Dog | Cat
+    </code></pre>
+
+    <h3>Input types</h3>
+    <p>
+      Inputs are a typed that let us pass a lot of properties into one object,
+      and use them in queries and mutations. We can't use
+      <code class="lang-graphql"> type </code> because they can have circular
+      references and also use interfaces as part of their values.
+    </p>
+
+    <pre><code>
+    input UserInput {
+      name: String!
+      age: Int!
+      isEmployed: Boolean = true 
+      family: [UserInput]
+    }
+    </code></pre>
+
+    <h3>Directives</h3>
+    <p>
+      Directives are a tool to manipulate the structure and the shape of a
+      result. There are 2 built in directives
+      <code class="lang-graphql"> @skip </code> and
+      <code class="lang-graphql"> @include </code>. There is also the posibility
+      to create your own.
+    </p>
+
+    <pre><code class="lang-graphql">
+    # Usage
+    query GetUsers{
+      users{
+       id
+       name
+       isEmployed @include(if: $withDetail)
+      }
+    }
+
+    #Variables
+    {
+      "withDetail": true  
+    }
+    </code></pre>
+
+    <h2>Query language</h2>
+    <p>
+      Like Sql, GraphQL has its own query language. It defines 3 types of
+      operations.
+    </p>
+
+    <h3>Queries</h3>
+    <p>Queries are the actions we use to retrieve information from our API.</p>
+
+    <pre><code class="lang-graphql">
+    # Schema
+    type Query {
+      getUserById(id: ID!): User   
+    }
+
+    # Usage
+    query GetUser($id: ID){             
+      getUserById(id: $id){
+        name
+        isEmployed
+      }
+    }
+
+
+    # Usage with fragment 
+    query GetUser($id: ID){             
+      getUserById(id: $id){
+        ...userFields
+      }
+    }
+
+    # Variables 
+    {
+      "id": 1234
+    }
+    </code></pre>
+
+    <h3>Mutations</h3>
+    <p>Mutations are the actions we use to update our data.</p>
+
+    <pre><code class="lang-graphql">
+    # Schema
+    type Mutation {
+      addUser(user: User)
+    }
+
+    # Usage
+    mutation AddUser($user: User){
+      addUser(user: $user){
+        name
+      }
+    }
+
+    # Variables 
+    {
+      "user":{
+        "name": "David"
+        "age": 28
+        "isEmployed": true
+        "family": []
+      }
+    }
+    </code></pre>
+
+    <h3>Subscriptions</h3>
+    <p>
+      Subscriptions are a special operation that allow us to receive updates in
+      real time.
+    </p>
+
+    <pre><code class="lang-graphql">
+    # Schema
+    type Subscription {
+      addedUser: User
+    }
+
+    # Usage
+    subscription onUserAdded{
+      addedUser{
+        name
+      }
+    }
+    </code></pre>
+    <p>
+      Subscriptions work like dispatched events being
+      <code class="lang-graphql"> addedUser </code> the event and
+      <code class="lang-graphql"> User </code> the data dispatched in the event.
+    </p>
+
+    <h2>Schema</h2>
+    <p>
+      The schema in GraphQL is very similar to the schema we use in ORMs. Is the
+      entire definition of the data we are going to use, with the addition of
+      the available operations (Queries, Mutations and Subscriptions).
+    </p>
+    <p>
+      Following the previous example the schema definition would be something
+      like this.
+    </p>
+
+    <pre><code class="lang-graphql">
+    type Query {
+      getUserById(id: ID!):User
+      ...
+    }
+
+    type Mutation {
+      addUser(user: User)	
+      ...
+    }
+
+    type Subscription {
+      addedUser: User
+      ...
+    }
+
+    input UserInput {
+      name: String!
+      age: Int!
+      isEmployed: Boolean = true 
+      family: [UserInput]
+    }
+
+    type User {
+      id: ID
+      name: String!
+      age: Int
+      isEmployed: Boolean
+      family: [User!]!
+    }
+    </code></pre>
+
+    <h2>Runtime</h2>
+    <p>
+      Basically GraphQL defines the query language and what should a runtime
+      needs to include but is up to the runtime provider to implement it, so
+      that's why is language agnostic.
+    </p>
+
+    <h3>Servers:</h3>
+    <ul>
+      <li>GraphQl.js</li>
+      <li>express-graphql</li>
+      <li>Apollo Server</li>
+    </ul>
+
+    <h3>Clients:</h3>
+    <ul>
+      <li>Apollo Client</li>
+      <li>Relay</li>
+      <li>graphql-request</li>
+      <li>Lokka</li>
+    </ul>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/plugins/autoloader/prism-autoloader.min.js"></script>
+  </body>
+</html>

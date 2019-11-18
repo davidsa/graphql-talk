@@ -1,0 +1,90 @@
+:root {
+  --primary: black;
+  --secondary: black;
+  --ternary: white;
+
+  --distance: 50px;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--ternary);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: 'Literata', serif;
+  padding: 15px 0;
+  position: relative;
+  color: var(--primary);
+}
+
+h1:after,
+h2:after,
+h3:after {
+  content: '';
+  width: 30%;
+  height: 1px;
+  position: absolute;
+  bottom: 0;
+  left: 35%;
+  background-color: var(--primary);
+}
+
+h2:after {
+  left: 0;
+  width: 30%;
+}
+
+h1 {
+  font-size: 3rem;
+  text-align: center;
+}
+
+h2 {
+  font-size: 2rem;
+  margin-left: var(--distance);
+}
+
+h3 {
+  font-size: 1.5rem;
+  margin-left: var(--distance);
+}
+
+h3:after {
+  left: 0;
+  width: 10%;
+}
+
+li,
+p {
+  font-family: 'Lato', sans-serif;
+  color: var(--secondary);
+}
+
+ul {
+  list-style-type: disc;
+  margin-left: 100px;
+}
+
+p,
+ul {
+  font-size: 1.5rem;
+  line-height: 1.5;
+  padding: 20px var(--distance);
+}
+
+pre {
+  margin: 0 var(--distance) !important;
+}
+
+.centered {
+  margin: 0 auto;
+}
