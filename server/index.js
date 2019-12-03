@@ -43,6 +43,7 @@ const typeDefs = gql`
 
 const Users = [];
 const Cities = [];
+const AWS = {};
 
 const resolvers = {
   Query: {
@@ -63,7 +64,6 @@ const resolvers = {
       if (!city) return;
       const user = {
         id: uuid(),
-        location: city,
         ...otherFields,
       };
       Users.push(user);
@@ -77,6 +77,10 @@ const resolvers = {
       Cities.push(city);
       return city;
     },
+  },
+  City: (root, params) => {
+    console.log(root);
+    return {name: 'Boyaca', country: 'Colombia'};
   },
 };
 
