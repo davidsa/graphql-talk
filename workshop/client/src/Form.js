@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { useMutation } from '@apollo/react-hooks'
+import gql from 'graphql-tag'
 import 'antd/dist/antd.css'
 import styled from 'styled-components'
 import { Form, Input, Upload, Button, Icon } from 'antd'
@@ -8,6 +10,18 @@ const { Item: FormItem } = Form
 const StyledForm = styled(Form)`
   width: 500px;
   margin: 30px auto;
+`
+
+const ADD_PET = gql`
+  mutation AddPet($petInput: PetInput!) {
+    addPet(petInput: $petInput) {
+      _id
+      name
+      age
+      race
+      photo
+    }
+  }
 `
 
 const MyForm = ({
@@ -20,14 +34,20 @@ const MyForm = ({
   },
 }) => {
   const [fileList, setFileList] = useState([])
+  const [addPet, { data }] = useMutation(ADD_PET)
+
+  console.log(data)
 
   const handleSubmit = e => {
     e.preventDefault()
     validateFields((err, values) => {
-      if (!err) {
-        console.log('Received values of form: ', values)
-      }
-      console.log(values)
+      if (err) console.error(err)
+      const [photo] = fileList
+      addPet({
+        variables: {
+          petInput: { ...values, age: parseInt(values.age), photo },
+        },
+      })
     })
   }
 
