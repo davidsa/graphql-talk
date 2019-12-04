@@ -5,7 +5,11 @@ const resolvers = {
     pets: () => PetModel.find(),
   },
   Mutation: {
-    addPet: (_, {petInput}) => PetModel.create(petInput),
+    addPet: (_, {petInput}) => {
+      const {photo} = petInput;
+      console.log(photo);
+      return PetModel.create(petInput);
+    },
     deletePet: (_, {petId}) => PetModel.findOneAndDelete({_id: petId}),
   },
 };

@@ -15,12 +15,14 @@ const typeDefs = gql`
     name: String!
     age: Int!
     race: String!
+    photo: String!
   }
 
   input PetInput {
     name: String!
     age: Int!
     race: String!
+    photo: Upload!
   }
 `;
 
