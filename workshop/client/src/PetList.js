@@ -49,21 +49,24 @@ const StyledSlate = styled(Title)`
   padding: 50px;
 `
 
+const DELETE_OPTIONS = {
+  update(cache, { data: { deletePet } }) {
+    const { _id: deletedId } = deletePet
+    const { pets } = cache.readQuery({ query: GET_PETS })
+    cache.writeQuery({
+      query: GET_PETS,
+      data: { pets: pets.filter(({ _id }) => _id !== deletedId) },
+    })
+  },
+}
+
 export const PetList = () => {
   const { loading, error, data: { pets } = { pets: [] } } = useQuery(GET_PETS)
+
   const [
     deletePet,
     { loading: deleteLoading, error: deleteError },
-  ] = useMutation(DELETE_PET, {
-    update(cache, { data: { deletePet } }) {
-      const { _id: deletedId } = deletePet
-      const { pets } = cache.readQuery({ query: GET_PETS })
-      cache.writeQuery({
-        query: GET_PETS,
-        data: { pets: pets.filter(({ _id }) => _id !== deletedId) },
-      })
-    },
-  })
+  ] = useMutation(DELETE_PET, DELETE_OPTIONS)
 
   if (loading || deleteLoading) return <StyledLoading>Loading...</StyledLoading>
 
