@@ -1,6 +1,10 @@
 import React from 'react'
+import { useQuery, useMutation } from '@apollo/react-hooks'
 import styled from 'styled-components'
-import { Card, Row, Col } from 'antd'
+import { Card, Row, Col, Typography, Icon } from 'antd'
+import { GET_PETS, DELETE_PET } from './queries'
+
+const { Title } = Typography
 
 const ResponsiveImg = styled('img')`
   height: auto;
@@ -9,6 +13,7 @@ const ResponsiveImg = styled('img')`
 const StyledCard = styled(Card)`
   width: 300px;
   margin: 30px auto;
+  position: relative;
 `
 
 const CenteredCol = styled(Col)`
@@ -26,38 +31,58 @@ const StyledLabel = styled('label')`
   font-weight: bold;
 `
 
-const pets = [
-  {
-    name: 'Fluffy',
-    age: 5,
-    race: 'French Pooddle',
-    photo:
-      'http://static.iris.net.co/4patas/upload/images//2015/7/30/1073_11255_1.jpg',
-  },
-  {
-    name: 'Rocky',
-    age: 2,
-    race: 'Pinscher',
-    photo:
-      'https://wakyma.com/blog/wp-content/uploads/2019/03/pinscher-miniatura-raza-770x460.jpg',
-  },
-  {
-    name: 'Danger',
-    age: 1,
-    race: 'Rottweiler',
-    photo:
-      'https://www.caracteristicas.co/wp-content/uploads/2017/02/rottweiler-e1560948487213.jpg',
-  },
-]
+const StyledClose = styled('div')`
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 10px;
+  cursor: pointer;
+  z-index: 100;
+`
+
+const StyledLoading = styled(Title)`
+  text-align: center;
+  padding: 30px;
+`
+
+const StyledSlate = styled(Title)`
+  padding: 50px;
+`
 
 export const PetList = () => {
+  const { loading, error, data: { pets } = { pets: [] } } = useQuery(GET_PETS)
+  const [
+    deletePet,
+    { loading: deleteLoading, error: deleteError },
+  ] = useMutation(DELETE_PET, {
+    update(cache, { data: { deletePet } }) {
+      const { _id: deletedId } = deletePet
+      const { pets } = cache.readQuery({ query: GET_PETS })
+      cache.writeQuery({
+        query: GET_PETS,
+        data: { pets: pets.filter(({ _id }) => _id !== deletedId) },
+      })
+    },
+  })
+
+  if (loading || deleteLoading) return <StyledLoading>Loading...</StyledLoading>
+
+  if (error || deleteError)
+    return <Title>`Error ${error || deleteError}`</Title>
+
+  const handleDelete = id => event => {
+    deletePet({ variables: { id } })
+  }
+
   return (
-    <Row type="flex">
-      {pets &&
-        pets.length > 0 &&
-        pets.map(({ name, age, race, photo }, index) => (
-          <Col span={12} key={index}>
+    <Row type="flex" justify="center">
+      {pets.length > 0 ? (
+        pets.map(({ _id, name, age, race, photo }, index) => (
+          <Col span={12} key={_id}>
             <StyledCard size="small">
+              <StyledClose onClick={handleDelete(_id)}>
+                <Icon type="close" />
+              </StyledClose>
               <Row type="flex" justify="space-around" align="middle">
                 <Col span={12}>
                   <ResponsiveImg src={photo} alt="Dog" />
@@ -72,7 +97,10 @@ export const PetList = () => {
               </Row>
             </StyledCard>
           </Col>
-        ))}
+        ))
+      ) : (
+        <StyledSlate>Empty List</StyledSlate>
+      )}
     </Row>
   )
 }

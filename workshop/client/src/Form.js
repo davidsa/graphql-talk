@@ -1,27 +1,15 @@
 import React, { useState } from 'react'
 import { useMutation } from '@apollo/react-hooks'
-import gql from 'graphql-tag'
 import 'antd/dist/antd.css'
 import styled from 'styled-components'
 import { Form, Input, Upload, Button, Icon } from 'antd'
+import { ADD_PET, GET_PETS } from './queries'
 
 const { Item: FormItem } = Form
 
 const StyledForm = styled(Form)`
   width: 500px;
   margin: 30px auto;
-`
-
-const ADD_PET = gql`
-  mutation AddPet($petInput: PetInput!) {
-    addPet(petInput: $petInput) {
-      _id
-      name
-      age
-      race
-      photo
-    }
-  }
 `
 
 const MyForm = ({
@@ -34,9 +22,16 @@ const MyForm = ({
   },
 }) => {
   const [fileList, setFileList] = useState([])
-  const [addPet, { data }] = useMutation(ADD_PET)
 
-  console.log(data)
+  const [addPet] = useMutation(ADD_PET, {
+    update(cache, { data: { addPet } }) {
+      const { pets } = cache.readQuery({ query: GET_PETS })
+      cache.writeQuery({
+        query: GET_PETS,
+        data: { pets: pets.concat([addPet]) },
+      })
+    },
+  })
 
   const handleSubmit = e => {
     e.preventDefault()
